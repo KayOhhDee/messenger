@@ -7,6 +7,8 @@ import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import AuthSocialButton from "./AuthSocialButton";
 import { BsGithub, BsGoogle } from "react-icons/bs";
 import axios from "axios";
+import { toast } from "react-hot-toast";
+import { signIn } from "next-auth/react";
 
 type Variant = "signin" | "signup";
 
@@ -34,19 +36,34 @@ const AuthForm = () => {
     setIsLoading(true);
     
     if (variant === "signin") {
-      // Sign in logic
+      try {
+        const response = await signIn("credentials", {
+          redirect: false,
+          email: data.email,
+          password: data.password,
+        });
+
+        if (response?.error) {
+          throw new Error(response.error);
+        }
+
+        toast.success("Logged in successfully.");
+      } catch (error: any) {
+        toast.error(error?.message ?? 'Something went wrong.');
+      } finally {
+        setIsLoading(false);
+      }
     } 
     
     if (variant === "signup"){
       try {
-        const response = await axios.post("/api/register", data);
-        console.log(response.data);
-      } catch (error) {
-        console.log(error);
+        await axios.post("/api/register", data);
+      } catch (error: any) {
+        toast.error(error?.response?.data ?? 'Something went wrong.');
+      } finally {
+        setIsLoading(false);
       }
     }
-
-    setIsLoading(false);
   }
 
   const socialAction = (action: string) => {
