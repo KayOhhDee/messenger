@@ -34,22 +34,22 @@ model User {
 }
 
 model Account {
-  id            String  @id @default(auto()) @map("_id") @db.ObjectId
-  provider      String
-  providerId    String
-  userId        String  @db.ObjectId
-  type          String
-  refresh_token String? @db.String
-  access_token  String? @db.String
-  id_token      String? @db.String
-  expires_at    Int?
-  token_type    String?
-  scope         String?
-  session_state String?
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  provider          String
+  providerAccountId String
+  userId            String  @db.ObjectId
+  type              String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  id_token          String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerId])
+  @@unique([provider, providerAccountId])
 }
 
 model Conversation {

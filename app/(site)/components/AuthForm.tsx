@@ -66,10 +66,16 @@ const AuthForm = () => {
     }
   }
 
-  const socialAction = (action: string) => {
+  const socialAction = async (action: string) => {
     setIsLoading(true);
-    // Social login logic
-    setIsLoading(false);
+
+    try {
+      await signIn(action, { redirect: false });
+    } catch (error: any) {
+      toast.error(error?.message ?? 'Something went wrong.');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
