@@ -12,7 +12,7 @@ import GroupChatModal from "./GroupChatModal";
 import { User } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import { pusherClient } from "@/app/libs/pusher";
-import { find } from "lodash";
+import { find, set } from "lodash";
 
 interface ConversationListProps {
   initialItems: FullConversationType[];
@@ -44,13 +44,28 @@ const ConversationList: React.FC<ConversationListProps> = ({ initialItems, users
       })
     }
 
+    const updateHandler = (conversation: FullConversationType) => {
+      setItems((current) => current.map((currConvo) => (currConvo.id === conversation.id) ? 
+        ({ ...currConvo, messages: conversation.messages }) : currConvo
+      ))
+    }
+
+    const deleteHandler = (conversation: FullConversationType) => {
+      setItems((current) => current.filter((currConvo) => currConvo.id !== conversation.id))
+      if (conversationId === conversation.id) router.push("/conversations");
+    }
+
     pusherClient.bind("conversation:new", newHandler);
+    pusherClient.bind("conversation:update", updateHandler);
+    pusherClient.bind("conversation:delete", deleteHandler);
 
     return () => {
       pusherClient.unsubscribe(pusherKey);
-      pusherClient.unbind("conversation:new", newHandler);
+      pusherClient.unbind("conversation:new", updateHandler);
+      pusherClient.unbind("conversation:update", updateHandler);
+      pusherClient.unbind("conversation:delete", deleteHandler);
     }
-  }, [pusherKey])
+  }, [pusherKey, router, conversationId, session.data?.user?.email])
 
   return ( 
     <>

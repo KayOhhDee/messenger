@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       }
     });
 
-    const updateConversation = await prisma.conversation.update({
+    const updatedConversation = await prisma.conversation.update({
       where: {
         id: conversationId
       },
@@ -63,13 +63,15 @@ export async function POST(request: Request) {
 
     await pusherServer.trigger(conversationId, "message:new", newMessage);
 
-    const lastMessage = updateConversation.messages[updateConversation.messages.length - 1];
+    const lastMessage = updatedConversation.messages[updatedConversation.messages.length - 1];
 
-    updateConversation.users.map((user) => {
-      pusherServer.trigger(user.email!, "conversation:update", {
-        id: conversationId,
-        message: [lastMessage]
-      })
+    updatedConversation.users.forEach((user) => {
+      if (user.email) {
+        pusherServer.trigger(user.email, "conversation:update", {
+          id: conversationId,
+          messages: [lastMessage]
+        })
+      }
     })
 
     return NextResponse.json(newMessage);
